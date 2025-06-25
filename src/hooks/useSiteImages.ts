@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { toast as sonnerToast } from 'sonner';
@@ -39,8 +39,19 @@ export const useSiteImages = () => {
   // [Cascade] Usar sempre o bucket unificado 'menu-images' para todas as operações de imagem
 const BUCKET_NAME = 'menu-images';
 
+  // Controle para evitar chamadas simultâneas
+  // Usando uma referência para garantir que o estado seja mantido entre renderizações
+  const isFetchingRef = useRef(false);
+  
   const fetchImages = async () => {
+    // Evitar chamadas simultâneas que podem causar carregamento infinito
+    if (isFetchingRef.current) {
+      console.log('Já existe uma busca de imagens em andamento, ignorando chamada...');
+      return;
+    }
+    
     try {
+      isFetchingRef.current = true;
       setLoading(true);
       console.log('Iniciando busca de imagens... [DEBUG]');
       
@@ -255,6 +266,8 @@ const BUCKET_NAME = 'menu-images';
       sonnerToast.error("Não foi possível carregar as imagens.");
     } finally {
       setLoading(false);
+      // Resetar a flag para permitir novas chamadas
+      isFetchingRef.current = false;
     }
   };
 
@@ -333,36 +346,8 @@ const BUCKET_NAME = 'menu-images';
         console.log('Novo registro criado com sucesso:', result);
       }
       
-      // Atualizar o estado local imediatamente para refletir a mudança
-      // Isso garante que a interface seja atualizada mesmo antes de fetchImages() completar
-      setImages(prevImages => {
-        // Verificar se já existe uma imagem com este tipo
-        const existingIndex = prevImages.findIndex(img => img.type === imageType);
-        
-        if (existingIndex >= 0) {
-          // Atualizar a imagem existente
-          const updatedImages = [...prevImages];
-          updatedImages[existingIndex] = {
-            ...updatedImages[existingIndex],
-            image_url: imageUrl,
-            updated_at: new Date().toISOString()
-          };
-          return updatedImages;
-        } else {
-          // Adicionar nova imagem
-          return [...prevImages, {
-            id: `temp-${Date.now()}`,
-            type: imageType,
-            title: imageType,
-            image_url: imageUrl,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }];
-        }
-      });
-      
-      // Recarregar imagens para garantir sincronização com o banco
-      fetchImages();
+      // Recarregar imagens para garantir sincronização com o banco e aguardar a conclusão
+      await fetchImages();
       sonnerToast.success("Imagem atualizada com sucesso!");
       return result;
     } catch (error) {
@@ -375,12 +360,39 @@ const BUCKET_NAME = 'menu-images';
   const getImageUrl = (imageType: string, fallbackUrl: string) => {
     console.log(`Buscando imagem do tipo: ${imageType}`);
     console.log(`Total de imagens disponíveis: ${images.length}`);
+    console.log('Todas as imagens disponíveis:', images);
+    
+    // Buscar diretamente do banco de dados para garantir dados atualizados
+    const fetchDirectFromDB = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('*')
+          .eq('type', 'site_image')
+          .eq('title', imageType)
+          .maybeSingle();
+          
+        if (error) {
+          console.error('Erro ao buscar imagem diretamente do banco:', error);
+          return null;
+        }
+        
+        if (data && data.content) {
+          console.log(`Imagem encontrada diretamente do banco para ${imageType}:`, data.content);
+          return data.content;
+        }
+        return null;
+      } catch (e) {
+        console.error('Erro ao buscar imagem do banco:', e);
+        return null;
+      }
+    };
     
     // Primeiro, procurar nas imagens do site (site_content)
     const image = images.find(img => img.type === imageType);
     
     if (image && image.image_url) {
-      console.log(`Imagem encontrada para ${imageType}:`, image.image_url);
+      console.log(`Imagem encontrada em cache para ${imageType}:`, image.image_url);
       return image.image_url;
     }
     
@@ -393,6 +405,32 @@ const BUCKET_NAME = 'menu-images';
       console.log(`Imagem de galeria encontrada para ${imageType}:`, galleryImage.image_url);
       return galleryImage.image_url;
     }
+    
+    // Tentar buscar diretamente do banco de forma síncrona
+    fetchDirectFromDB().then(directUrl => {
+      if (directUrl) {
+        // Atualizar o estado local para futuras chamadas
+        setImages(prev => {
+          const existingIndex = prev.findIndex(img => img.type === imageType);
+          if (existingIndex >= 0) {
+            const updated = [...prev];
+            updated[existingIndex] = {
+              ...updated[existingIndex],
+              image_url: directUrl
+            };
+            return updated;
+          }
+          return [...prev, {
+            id: `db-${Date.now()}`,
+            type: imageType,
+            title: imageType,
+            image_url: directUrl,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }];
+        });
+      }
+    });
     
     console.log(`Nenhuma imagem encontrada para ${imageType}, usando fallback:`, fallbackUrl);
     return fallbackUrl;
@@ -534,6 +572,36 @@ const BUCKET_NAME = 'menu-images';
 
       // Primeiro, remover do banco de dados se a imagem tiver um ID válido
       let removedFromDB = false;
+      
+      // Verificar se a imagem está sendo usada como imagem de seção
+      const { data: sectionImages, error: sectionError } = await supabase
+        .from('site_content')
+        .select('*')
+        .eq('type', 'site_image')
+        .eq('content', image.image_url);
+        
+      if (sectionError) {
+        console.error('Erro ao verificar uso da imagem em seções:', sectionError);
+      } else if (sectionImages && sectionImages.length > 0) {
+        // Remover referências da imagem em todas as seções
+        for (const sectionImage of sectionImages) {
+          console.log(`Removendo referência da imagem na seção ${sectionImage.title}`);
+          try {
+            const { error: updateError } = await supabase
+              .from('site_content')
+              .update({ content: null })
+              .eq('id', sectionImage.id);
+              
+            if (updateError) {
+              console.error(`Erro ao remover referência na seção ${sectionImage.title}:`, updateError);
+            }
+          } catch (err) {
+            console.error(`Erro ao atualizar seção ${sectionImage.title}:`, err);
+          }
+        }
+      }
+      
+      // Remover o registro da imagem se tiver ID válido
       if (image.id && !image.id.startsWith('temp-') && !image.id.startsWith('bucket-')) {
         console.log('Removendo registro do banco de dados, ID:', image.id);
         
@@ -572,7 +640,8 @@ const BUCKET_NAME = 'menu-images';
         if (image.image_url.includes(pattern)) {
           const urlParts = image.image_url.split(pattern);
           if (urlParts.length > 1) {
-            filePath = urlParts[1];
+            // Remover parâmetros de query da URL (como ?t=123456)
+            filePath = urlParts[1].split('?')[0];
             console.log(`Caminho do arquivo (${bucket}):`, filePath);
             
             // Remover do bucket atual

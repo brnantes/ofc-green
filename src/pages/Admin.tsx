@@ -167,7 +167,7 @@ const Admin = () => {
             </Card>
 
             {/* Cards de Estatísticas */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card className="bg-poker-gray-medium/70 border-poker-gold/20">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -329,7 +329,7 @@ const Admin = () => {
     <div className="min-h-screen bg-poker-black text-white">
       <Header />
       
-      <div className="flex pt-20">
+      <div className="flex flex-col md:flex-row pt-20 w-full">
         {/* Overlay escuro ao fundo quando menu aberto no mobile */}
         {sidebarOpen && (
           <div
@@ -351,8 +351,8 @@ const Admin = () => {
         <div
           className={`w-64 bg-poker-gray-dark/90 backdrop-blur-sm border-r border-poker-gold/20 fixed h-full left-0 top-20 overflow-y-auto z-40 transition-transform duration-300
             ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-            md:translate-x-0 md:static md:block`}
-          style={{ minWidth: '16rem' }}
+            md:translate-x-0 md:relative md:block md:w-1/5 lg:w-1/6`}
+          style={{ minWidth: '200px' }}
         >
           {/* Botão fechar no mobile */}
           <button
@@ -414,7 +414,7 @@ const Admin = () => {
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 ml-64 p-8">
+        <main className="flex-1 p-4 md:p-6 lg:p-8 w-full md:w-4/5 lg:w-5/6">
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-white mb-2">
               {menuItems.find(item => item.id === activeSection)?.label || 'Dashboard'}
