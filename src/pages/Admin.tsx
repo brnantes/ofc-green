@@ -27,7 +27,10 @@ import {
   Shield,
 } from 'lucide-react';
 
+import { X } from 'lucide-react';
+
 const Admin = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isLoggedIn, logout, currentUser } = useAuth();
   const [activeSection, setActiveSection] = useState('dashboard');
   const { stats, loading: statsLoading } = useSystemStats();
@@ -36,17 +39,86 @@ const Admin = () => {
     { id: 'dashboard', label: 'Dashboard', icon: TrendingUp },
     { id: 'menu', label: 'Cardápio', icon: ChefHat },
     { id: 'tournaments', label: 'Torneios', icon: Trophy },
-    { id: 'champions', label: 'Campeões', icon: Star },
-    { id: 'banners', label: 'Banners', icon: Image },
-    { id: 'contacts', label: 'Contatos', icon: MessageSquare },
     { id: 'users', label: 'Usuários', icon: Shield },
     { id: 'images', label: 'Galeria', icon: Image },
+    { id: 'footer', label: 'Rodapé', icon: MessageSquare },
   ];
 
+  // Estado para edição do rodapé
+  const [footerData, setFooterData] = useState({
+    endereco: '',
+    telefone: '',
+    whatsappTexto: '',
+    whatsappLink: '',
+  });
 
+  // Carregar dados do localStorage ao abrir
+  useEffect(() => {
+    const saved = localStorage.getItem('footerData');
+    if (saved) {
+      setFooterData(JSON.parse(saved));
+    }
+  }, []);
+
+  // Função para salvar no localStorage
+  const handleFooterSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    localStorage.setItem('footerData', JSON.stringify(footerData));
+    window.dispatchEvent(new Event('footerDataUpdate'));
+    alert('Informações do rodapé salvas!');
+  };
 
   const renderContent = () => {
     switch(activeSection) {
+      case 'footer':
+        return (
+          <Card className="max-w-xl mx-auto mt-8">
+            <CardHeader>
+              <CardTitle>Editar informações do rodapé</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleFooterSave} className="space-y-4">
+                <div>
+                  <label className="block text-gray-300 mb-1">Endereço</label>
+                  <input
+                    type="text"
+                    className="w-full rounded border px-3 py-2 bg-poker-black text-white"
+                    value={footerData.endereco}
+                    onChange={e => setFooterData({ ...footerData, endereco: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 mb-1">Telefone</label>
+                  <input
+                    type="text"
+                    className="w-full rounded border px-3 py-2 bg-poker-black text-white"
+                    value={footerData.telefone}
+                    onChange={e => setFooterData({ ...footerData, telefone: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 mb-1">Texto do WhatsApp</label>
+                  <input
+                    type="text"
+                    className="w-full rounded border px-3 py-2 bg-poker-black text-white"
+                    value={footerData.whatsappTexto}
+                    onChange={e => setFooterData({ ...footerData, whatsappTexto: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 mb-1">Link do WhatsApp</label>
+                  <input
+                    type="text"
+                    className="w-full rounded border px-3 py-2 bg-poker-black text-white"
+                    value={footerData.whatsappLink}
+                    onChange={e => setFooterData({ ...footerData, whatsappLink: e.target.value })}
+                  />
+                </div>
+                <button type="submit" className="bg-green-primary text-white px-6 py-2 rounded font-bold hover:bg-green-700 transition">Salvar</button>
+              </form>
+            </CardContent>
+          </Card>
+        );
       case 'dashboard':
         return statsLoading ? (
           <div className="flex items-center justify-center h-64">
@@ -258,8 +330,38 @@ const Admin = () => {
       <Header />
       
       <div className="flex pt-20">
+        {/* Overlay escuro ao fundo quando menu aberto no mobile */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/60 z-30 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Fechar menu ao clicar fora"
+          />
+        )}
+        {/* Botão para abrir menu no mobile */}
+        <button
+          className="md:hidden fixed z-50 top-24 left-4 bg-poker-gold text-poker-black rounded-full p-2 shadow-lg"
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Abrir menu"
+        >
+          <MenuIcon className="w-7 h-7" />
+        </button>
+
         {/* Sidebar Navigation */}
-        <div className="w-64 bg-poker-gray-dark/90 backdrop-blur-sm border-r border-poker-gold/20 fixed h-full left-0 top-20 overflow-y-auto">
+        <div
+          className={`w-64 bg-poker-gray-dark/90 backdrop-blur-sm border-r border-poker-gold/20 fixed h-full left-0 top-20 overflow-y-auto z-40 transition-transform duration-300
+            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+            md:translate-x-0 md:static md:block`}
+          style={{ minWidth: '16rem' }}
+        >
+          {/* Botão fechar no mobile */}
+          <button
+            className="md:hidden absolute top-4 right-4 text-poker-gold"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Fechar menu"
+          >
+            <X className="w-7 h-7" />
+          </button>
           <div className="p-4">
             <div className="mb-6">
               <h2 className="text-xl font-bold gradient-text mb-1">Painel Admin</h2>
@@ -272,7 +374,10 @@ const Admin = () => {
                 return (
                   <button
                     key={item.id}
-                    onClick={() => setActiveSection(item.id)}
+                    onClick={() => {
+                      setActiveSection(item.id);
+                      setSidebarOpen(false); // fecha o menu ao clicar
+                    }}
                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all ${
                       activeSection === item.id
                         ? 'bg-poker-gold text-poker-black font-semibold'

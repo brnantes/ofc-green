@@ -105,20 +105,7 @@ const Tournaments = () => {
           </div>
         </div>
 
-        {/* Área do torneio em destaque */}
-        {todaysTournament && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.5 }}
-            className="mb-12"
-          >
-            <div className="bg-gradient-to-r from-poker-gold/10 via-poker-black/50 to-poker-gold/10 rounded-2xl p-8 border border-poker-gold/30 shadow-2xl">
-              <TournamentCard tournament={todaysTournament} isHighlighted={true} />
-            </div>
-          </motion.div>
-        )}
+
 
         {/* Lista de torneios do dia */}
         {(function() {
@@ -144,10 +131,6 @@ const Tournaments = () => {
                 </Card>
               </motion.div>
             );
-          }
-
-          if (todaysTournament) {
-            return null;
           }
 
           return (
@@ -197,55 +180,60 @@ const TournamentCard = ({ tournament, isHighlighted = false }) => {
   if (!tournament) return null;
   return (
     <motion.div
-      whileHover={{ scale: 1.02 }}
-      className={`relative overflow-hidden rounded-xl border ${
-        isHighlighted 
-          ? 'border-poker-gold bg-gradient-to-br from-poker-gold/20 to-transparent' 
-          : 'border-poker-gold/30 bg-poker-black/50'
-      } backdrop-blur-sm`}
+      whileHover={{ scale: 1.03 }}
+      className={`relative overflow-hidden rounded-3xl border-2 shadow-xl transition-all duration-300 ${
+        isHighlighted
+          ? 'border-poker-gold bg-gradient-to-br from-poker-gold/30 to-poker-black/90'
+          : 'border-poker-gold/20 bg-poker-black/70'
+      } backdrop-blur-xl`}
     >
+      {/* Badge de destaque */}
       {isHighlighted && (
-        <div className="absolute top-3 right-3">
-          <Badge className="bg-poker-gold text-poker-black font-semibold">
+        <div className="absolute top-5 right-5 z-10">
+          <span className="px-4 py-1 rounded-full bg-gradient-to-r from-poker-gold to-yellow-400 text-poker-black font-bold shadow-lg text-base border-2 border-yellow-200 animate-pulse">
             DESTAQUE
-          </Badge>
+          </span>
         </div>
       )}
-      <CardHeader className="flex flex-row items-center gap-4 pb-4">
-        <Trophy className="w-10 h-10 text-poker-gold" />
+      {/* Imagem de fundo sutil para efeito visual */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none select-none" style={{backgroundImage: 'url(/lovable-uploads/a51d0bdb-8cb1-4dcb-80a0-90df1afb8b1b.png)', backgroundSize: 'cover', backgroundPosition: 'center'}} />
+      <CardHeader className="flex flex-row items-center gap-6 pb-4 relative z-10">
+        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-poker-gold/30 shadow-md">
+          <Trophy className="w-9 h-9 text-poker-gold drop-shadow-lg" />
+        </div>
         <div>
-          <CardTitle className="text-2xl text-white mb-1">
+          <CardTitle className="text-3xl font-extrabold text-white mb-1 tracking-tight drop-shadow">
             {tournament.name}
           </CardTitle>
-          <div className="flex items-center gap-2 text-gray-400 text-sm">
-            <Clock className="w-4 h-4" />
-            {tournament.time}
-            <Users className="w-4 h-4 ml-4" />
-            {tournament.players} jogadores
+          <div className="flex items-center gap-4 text-gray-200 text-lg font-medium">
+            <Clock className="w-5 h-5 text-poker-gold" />
+            <span>{tournament.time}</span>
+            <Users className="w-5 h-5 text-green-400 ml-4" />
+            <span>{tournament.players} jogadores</span>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-0">
-        <div className="flex flex-wrap gap-3 mb-3">
-          <Badge className="bg-poker-gold/20 text-poker-gold">
-            Buy-in: R$ {tournament.buy_in}
+      <CardContent className="pt-0 relative z-10">
+        <div className="flex flex-wrap gap-4 mb-4">
+          <Badge className="bg-poker-gold/30 text-poker-gold text-base px-4 py-2 rounded-lg">
+            Buy-in: <span className="font-bold">R$ {tournament.buy_in}</span>
           </Badge>
-          <Badge className="bg-poker-gold/10 text-poker-gold">
-            Premiação: R$ {tournament.prize}
+          <Badge className="bg-poker-gold/20 text-poker-gold text-base px-4 py-2 rounded-lg">
+            Premiação: <span className="font-bold">R$ {tournament.prize}</span>
           </Badge>
           {tournament.rebuy && (
-            <Badge className="bg-green-500/20 text-green-400">
+            <Badge className="bg-green-700/20 text-green-400 text-base px-4 py-2 rounded-lg">
               Rebuy disponível
             </Badge>
           )}
         </div>
-        <div className="text-gray-300 text-base mb-2">
+        <div className="text-gray-200 text-lg mb-3 font-light italic">
           {tournament.description}
         </div>
         {tournament.link && (
-          <Button asChild className="mt-4 bg-poker-gold text-poker-black hover:bg-poker-gold/80">
+          <Button asChild className="mt-4 bg-gradient-to-r from-green-500 to-green-700 text-white font-bold px-8 py-3 text-lg rounded-xl shadow-lg hover:scale-105 transition-transform">
             <a href={tournament.link} target="_blank" rel="noopener noreferrer">
-              Saiba mais <ChevronRight className="w-4 h-4 ml-2" />
+              Saiba mais <ChevronRight className="w-5 h-5 ml-2" />
             </a>
           </Button>
         )}

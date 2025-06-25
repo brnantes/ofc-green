@@ -12,16 +12,24 @@ const Hero = () => {
   return (
     <section className="relative flex flex-col items-center justify-center min-h-[80vh] w-full overflow-hidden">
       {/* Imagem de fundo com overlay */}
-      <img 
-        src={imageUrl} 
-        alt="Mesa de Poker Green Table" 
-        className="absolute inset-0 w-full h-full object-cover" 
-      />
+      {!loading && (
+        <img 
+          src={imageUrl} 
+          alt="Mesa de Poker Green Table" 
+          className="absolute inset-0 w-full h-full object-cover" 
+        />
+      )}
       <div className="absolute inset-0 bg-gradient-to-b from-poker-black/80 via-poker-gray-dark/80 to-poker-black/80"></div>
       
       <div className="relative z-10 flex flex-col items-center justify-center text-center px-4">
-        <h1 className="text-4xl md:text-6xl font-extrabold text-white drop-shadow-lg mb-4">
-          Bem-vindo ao Green Table
+
+        <h1 className="text-4xl md:text-6xl font-extrabold text-white drop-shadow-lg mb-4 flex flex-col items-center">
+          <span>Bem-vindo ao</span>
+          <img 
+            src="/lovable-uploads/green-table-logo.png"
+            alt="Green Table Logo"
+            className="h-32 w-auto mt-2 mb-2 drop-shadow-xl"
+          />
         </h1>
         <p className="text-lg md:text-2xl text-white/90 mb-8 max-w-2xl">
           O melhor clube de poker e bar da cidade. Experimente a emoção do jogo em um ambiente sofisticado e descontraído.

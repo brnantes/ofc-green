@@ -2,7 +2,43 @@ import { MapPin, Phone, Facebook, Instagram, Youtube } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
+import { useState, useEffect } from 'react';
+
 const Footer = () => {
+  const [footerData, setFooterData] = useState({
+    endereco: '',
+    telefone: '',
+    whatsappTexto: '',
+    whatsappLink: '',
+  });
+
+  useEffect(() => {
+    const saved = localStorage.getItem('footerData');
+    if (saved) {
+      setFooterData(JSON.parse(saved));
+    }
+    // Listener para atualizar quando outro componente alterar o localStorage
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'footerData') {
+        setFooterData(event.newValue ? JSON.parse(event.newValue) : {
+          endereco: '', telefone: '', whatsappTexto: '', whatsappLink: ''
+        });
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    // Atualização imediata na mesma aba
+    window.addEventListener('footerDataUpdate', () => {
+      const updated = localStorage.getItem('footerData');
+      setFooterData(updated ? JSON.parse(updated) : {
+        endereco: '', telefone: '', whatsappTexto: '', whatsappLink: ''
+      });
+    });
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('footerDataUpdate', () => {});
+    };
+  }, []);
+
   return (
     <footer className="bg-green-black border-t border-green-primary/20">
       <div className="container mx-auto px-4 py-12">
@@ -10,9 +46,9 @@ const Footer = () => {
           <div>
             <div className="flex items-center mb-4">
               <img 
-                src="/lovable-uploads/6b476369-5762-4229-8768-0788aa39dbcc.png" 
-                alt="Green Table Icon" 
-                className="w-8 h-8 mr-3"
+                src="/lovable-uploads/green-table-logo.png" 
+                alt="Green Table Logo" 
+                className="w-12 h-12 mr-3"
               />
               <h3 className="text-2xl font-bold gradient-text">
                 Green Table
@@ -49,11 +85,11 @@ const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center text-gray-400">
                 <MapPin size={16} className="mr-2 text-green-primary" />
-                <span>Rua do Pôquer, 123 - Centro</span>
+                <span>{footerData.endereco || 'Rua do Pôquer, 123 - Centro'}</span>
               </div>
               <div className="flex items-center text-gray-400">
                 <Phone size={16} className="mr-2 text-green-primary" />
-                <span>(11) 9999-8888</span>
+                <span>{footerData.telefone || '(11) 9999-8888'}</span>
               </div>
             </div>
           </div>
@@ -61,15 +97,32 @@ const Footer = () => {
           <div>
             <h4 className="text-green-primary font-semibold mb-4">WhatsApp</h4>
             <p className="text-gray-400 mb-4">
-              Fale conosco diretamente pelo WhatsApp
+              {footerData.whatsappTexto || 'Fale conosco diretamente pelo WhatsApp'}
             </p>
-            <Button className="bg-green-600 hover:bg-green-700 text-white">
-              Chamar no WhatsApp
-            </Button>
+            <a
+              href={
+                footerData.whatsappLink
+                  ? footerData.whatsappLink.startsWith('http')
+                    ? footerData.whatsappLink
+                    : footerData.whatsappLink.replace(/^(wa\.me\/|https:\/\/wa\.me\/)?/, 'https://wa.me/')
+                  : 'https://wa.me/551199998888'
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button className="bg-green-600 hover:bg-green-700 text-white">
+                Chamar no WhatsApp
+              </Button>
+            </a>
           </div>
         </div>
         
-        <div className="border-t border-green-primary/20 mt-8 pt-8 text-center">
+        <div className="border-t border-green-primary/20 mt-8 pt-8 text-center flex flex-col items-center gap-2">
+          <img 
+            src="/lovable-uploads/green-table-logo.png" 
+            alt="Green Table Logo" 
+            className="h-10 w-auto mx-auto mb-2"
+          />
           <p className="text-gray-400">
             © 2025 Green Table. Todos os direitos reservados.
           </p>

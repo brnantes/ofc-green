@@ -12,7 +12,6 @@ const Header = () => {
   const navItems = [
     { name: 'Início', href: '/', active: true },
     { name: 'Torneios', href: '#tournaments', active: false },
-    { name: 'Hall da Fama', href: '#hall-of-fame', active: false },
     { name: 'Cardápio', href: '/menu', active: false },
     { name: 'Contato', href: '#contact', active: false },
   ];
@@ -23,9 +22,9 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <img 
-              src={getImageUrl('menu_background', '/lovable-uploads/196cfcf0-bff1-44e2-befb-600b276767fd.png')} 
-              alt="Green Table Logo" 
-              className="h-12 w-auto"
+              src="/lovable-uploads/green-table-logo.png" 
+              alt="Logo" 
+              className="h-20 w-auto"
             />
           </div>
           
