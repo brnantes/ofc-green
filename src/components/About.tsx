@@ -43,9 +43,10 @@ const About = () => {
   const features = [
     {
       icon: Trophy,
-      title: "Torneios Profissionais",
-      description: "Competições regulares com organização de alto nível e prêmios atrativos",
-      image: "/lovable-uploads/a51d0bdb-8cb1-4dcb-80a0-90df1afb8b1b.png"
+      title: "Clube Online Suprema",
+      description: "Faça parte do nosso clube online no Suprema - ID 44357. Entre no app Suprema, insira o ID e jogue conosco!",
+      image: "/lovable-uploads/a51d0bdb-8cb1-4dcb-80a0-90df1afb8b1b.png",
+      whatsapp: "67992488800"
     },
     {
       icon: Users,
@@ -79,9 +80,11 @@ const About = () => {
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {/* Card de Gastronomia Premium - tratado separadamente */}
           <div
-            onClick={handleFoodCardClick}
             className="group relative overflow-hidden rounded-2xl bg-green-gray-medium/50 backdrop-blur-sm border border-green-primary/20 hover:border-green-primary/40 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-green-primary/20 animate-slide-in-left cursor-pointer"
-            style={{ animationDelay: '0.4s' }}
+            style={{ animationDelay: '0.1s' }}
+            onClick={() => window.open('/menu', '_blank')}
+            role="button"
+            aria-label="Abrir cardápio"
           >
             {/* Imagem de fundo */}
             <div className="absolute inset-0 opacity-70 group-hover:opacity-80 transition-opacity duration-500">
@@ -117,6 +120,17 @@ const About = () => {
               <p className="text-gray-300 group-hover:text-gray-200 transition-colors duration-300 leading-relaxed">
                 Cardápio especial que eleva sua experiência gastronômica
               </p>
+              <div className="mt-4">
+                <button 
+                  onClick={() => window.open('/menu', '_self')}
+                  className="inline-block bg-gradient-to-r from-green-600 to-green-700 text-white font-medium py-3 px-6 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-primary/30 transform"
+                >
+                  <div className="flex items-center justify-center gap-3">
+                    <Utensils className="w-5 h-5" />
+                    <span className="text-lg">Ver Cardápio</span>
+                  </div>
+                </button>
+              </div>
             </div>
             
             {/* Efeito hover */}
@@ -143,16 +157,43 @@ const About = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-green-black/90 via-green-black/60 to-green-black/30"></div>
               
               {/* Conteúdo */}
-              <div className="relative z-10 p-8 text-center space-y-4">
-                <div className="w-16 h-16 bg-green-primary/20 rounded-full flex items-center justify-center mx-auto group-hover:bg-green-primary/30 group-hover:scale-110 transition-all duration-300">
-                  <feature.icon className="w-8 h-8 text-green-primary group-hover:scale-110 transition-transform duration-300" />
+              <div className="relative z-10 p-8 text-center space-y-6">
+                <div className="w-20 h-20 bg-green-primary/30 rounded-full flex items-center justify-center mx-auto group-hover:bg-green-primary/50 group-hover:scale-110 transition-all duration-500 shadow-lg shadow-green-primary/20">
+                  <feature.icon className="w-10 h-10 text-green-primary group-hover:scale-110 transition-transform duration-500" />
                 </div>
-                <h3 className="text-2xl font-bold text-green-primary group-hover:text-green-light transition-colors duration-300">
+                <h3 className="text-3xl font-bold text-green-primary group-hover:text-green-light transition-colors duration-300">
                   {feature.title}
                 </h3>
-                <p className="text-gray-300 group-hover:text-gray-200 transition-colors duration-300 leading-relaxed">
+                
+                {/* ID do Clube com destaque */}
+                <div className="bg-gradient-to-r from-green-primary/20 to-transparent p-4 rounded-xl border border-green-primary/30 group-hover:border-green-primary/50 transition-all duration-300">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <span className="text-gray-300 text-sm">ID DO CLUBE</span>
+                    <span className="text-green-primary text-3xl font-bold tracking-widest animate-pulse-slow">44357</span>
+                  </div>
+                </div>
+                
+                <p className="text-gray-300 group-hover:text-gray-200 transition-colors duration-300 leading-relaxed text-lg">
                   {feature.description}
                 </p>
+                
+                {feature.whatsapp && (
+                  <div className="mt-2">
+                    <a 
+                      href={`https://wa.me/${feature.whatsapp}?text=Ol%C3%A1%2C%20gostaria%20de%20adicionar%20fichas%20no%20clube%20online%20do%20Green%20Table%20Poker%20no%20Suprema.`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block bg-gradient-to-r from-green-600 to-green-700 text-white font-medium py-3 px-6 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-primary/30 transform"
+                    >
+                      <div className="flex items-center justify-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-whatsapp" viewBox="0 0 16 16">
+                          <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
+                        </svg>
+                        <span className="text-lg">Adicionar fichas</span>
+                      </div>
+                    </a>
+                  </div>
+                )}
               </div>
               
               {/* Efeito hover */}

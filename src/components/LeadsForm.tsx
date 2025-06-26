@@ -1,36 +1,65 @@
 import { useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 
-const supabaseUrl = 'https://hsubouwujfcdyuyikvbi.supabase.co';
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'public-anon-key'; // Substitua pela sua chave pública se necessário
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Usando o cliente Supabase importado do arquivo de integração
 
 export default function LeadsForm() {
-  const [form, setForm] = useState({ nome: '', email: '', telefone: '', data_nascimento: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', birth_date: '' });
   const [status, setStatus] = useState('');
   const [showBuyInMessage, setShowBuyInMessage] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    
+    // Formatação especial para o campo de telefone
+    if (name === 'phone') {
+      // Remove todos os caracteres não numéricos
+      const numericValue = value.replace(/\D/g, '');
+      
+      // Aplica a formatação (XX) XXXXX-XXXX
+      let formattedValue = numericValue;
+      if (numericValue.length <= 11) {
+        if (numericValue.length > 2) {
+          formattedValue = `(${numericValue.slice(0, 2)})${numericValue.length > 2 ? ' ' + numericValue.slice(2) : ''}`;
+        }
+        if (numericValue.length > 7) {
+          formattedValue = `(${numericValue.slice(0, 2)}) ${numericValue.slice(2, 7)}-${numericValue.slice(7)}`;
+        }
+      }
+      
+      setForm({ ...form, [name]: formattedValue });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('Enviando...');
-    const { error } = await supabase.from('leads').insert([
+    
+    // Armazenar os dados do cliente na tabela site_content existente
+    // Usando o tipo 'client' para diferenciar de outros conteúdos
+    const clientData = {
+      name: form.name,
+      email: form.email,
+      phone: form.phone,
+      birth_date: form.birth_date,
+      created_at: new Date().toISOString()
+    };
+    
+    const { error } = await supabase.from('site_content').insert([
       {
-        nome: form.nome,
-        email: form.email,
-        telefone: form.telefone,
-        data_nascimento: form.data_nascimento,
+        type: 'client',
+        title: form.name, // Usar o nome como título para facilitar a listagem
+        content: JSON.stringify(clientData) // Armazenar os dados como JSON na coluna content
       },
     ]);
     if (error) {
       setStatus('Erro ao enviar: ' + error.message);
     } else {
       setStatus('Enviado com sucesso!');
-      setForm({ nome: '', email: '', telefone: '', data_nascimento: '' });
+      setForm({ name: '', email: '', phone: '', birth_date: '' });
       setShowBuyInMessage(true);
       // Scroll para o topo após 2 segundos
       setTimeout(() => {
@@ -46,11 +75,7 @@ export default function LeadsForm() {
       transition={{ duration: 0.5 }}
       className="container mx-auto px-4 py-12"
     >
-      {/* Banner de promoção */}
-      <div className="absolute left-0 right-0 bg-poker-gold text-white text-center py-2 px-4 shadow-lg transform -rotate-1 z-10 animate-pulse-slow max-w-5xl mx-auto">
-        <span className="font-bold">🎲 OFERTA ESPECIAL 🎲</span>
-        <p className="text-sm">Cadastre-se hoje e ganhe um <span className="font-bold text-poker-white">BUY-IN GRÁTIS</span> no seu primeiro torneio!</p>
-      </div>
+      {/* Banner de promoção removido */}
       
       <div className="flex flex-col md:flex-row gap-8 max-w-5xl mx-auto mt-12">
         {/* Coluna do formulário */}
@@ -58,16 +83,16 @@ export default function LeadsForm() {
           <form onSubmit={handleSubmit} className="space-y-6 bg-poker-gray-dark border border-poker-gold/30 p-8 rounded-lg shadow-xl relative overflow-hidden h-full">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-poker-gold via-poker-gold-light to-poker-gold"></div>
             
-            <h2 className="text-2xl font-bold mb-6 text-poker-white">Junte-se à nossa mesa <span className="text-poker-gold">VIP</span></h2>
+            <h2 className="text-2xl font-bold mb-6 text-poker-white">Ganhe <span className="text-poker-gold">BUY-IN GRÁTIS</span> no seu primeiro torneio!</h2>
             
-            <p className="text-sm text-gray-300 mb-6">Cadastre-se para receber novidades, promoções exclusivas e garantir sua vaga nos melhores torneios.</p>
+            <p className="text-sm text-gray-300 mb-6">Cadastre-se agora e garanta sua entrada gratuita em qualquer torneio da casa. Além disso, receba promoções exclusivas e seja o primeiro a saber das novidades.</p>
             
             <div className="space-y-4">
               <div>
                 <label className="block text-poker-white text-sm font-medium mb-1">Nome completo</label>
                 <input 
-                  name="nome" 
-                  value={form.nome} 
+                  name="name" 
+                  value={form.name} 
                   onChange={handleChange} 
                   required 
                   className="w-full bg-poker-gray-medium border-poker-gold/20 border rounded-md px-4 py-3 text-white focus:ring-2 focus:ring-poker-gold/50 focus:border-transparent transition-all" 
@@ -90,22 +115,30 @@ export default function LeadsForm() {
               
               <div>
                 <label className="block text-poker-white text-sm font-medium mb-1">Telefone</label>
-                <input 
-                  name="telefone" 
-                  value={form.telefone} 
-                  onChange={handleChange} 
-                  required 
-                  className="w-full bg-poker-gray-medium border-poker-gold/20 border rounded-md px-4 py-3 text-white focus:ring-2 focus:ring-poker-gold/50 focus:border-transparent transition-all" 
-                  placeholder="(00) 00000-0000"
-                />
+                <div className="relative">
+                  <input 
+                    name="phone" 
+                    value={form.phone} 
+                    onChange={handleChange} 
+                    required 
+                    className="w-full bg-poker-gray-medium border-poker-gold/20 border rounded-md px-4 py-3 pl-10 text-white focus:ring-2 focus:ring-poker-gold/50 focus:border-transparent transition-all hover:border-poker-gold/40" 
+                    placeholder="(67) 99999-9999"
+                    maxLength={15}
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="text-green-primary" viewBox="0 0 16 16">
+                      <path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 0 0 4.168 6.608 17.569 17.569 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122l-2.19.547a1.745 1.745 0 0 1-1.657-.459L5.482 8.062a1.745 1.745 0 0 1-.46-1.657l.548-2.19a.678.678 0 0 0-.122-.58L3.654 1.328zM1.884.511a1.745 1.745 0 0 1 2.612.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.634 18.634 0 0 1-7.01-4.42 18.634 18.634 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877L1.885.511z"/>
+                    </svg>
+                  </div>
+                </div>
               </div>
               
               <div>
                 <label className="block text-poker-white text-sm font-medium mb-1">Data de Nascimento</label>
                 <input 
-                  name="data_nascimento" 
+                  name="birth_date" 
                   type="date" 
-                  value={form.data_nascimento} 
+                  value={form.birth_date} 
                   onChange={handleChange} 
                   required 
                   className="w-full bg-poker-gray-medium border-poker-gold/20 border rounded-md px-4 py-3 text-white focus:ring-2 focus:ring-poker-gold/50 focus:border-transparent transition-all" 
@@ -168,26 +201,22 @@ export default function LeadsForm() {
         
         {/* Coluna do Instagram */}
         <div className="md:w-1/2">
-          <div className="bg-poker-gray-medium border-poker-gold/20 border rounded-lg p-8 text-center h-full flex flex-col justify-center">
-            <h3 className="text-2xl font-bold text-green-primary mb-4">Siga nosso Instagram!</h3>
-            <p className="text-gray-300 text-lg mb-8">
+          <div className="bg-gradient-to-br from-poker-gray-medium to-poker-gray-dark border-poker-gold/30 border-2 rounded-2xl p-8 text-center h-full flex flex-col justify-center shadow-lg shadow-green-primary/10 hover:shadow-green-primary/20 transition-all duration-300 hover:scale-[1.02] transform">
+            <div className="mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto text-green-primary mb-2">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
+            </div>
+            <h3 className="text-3xl font-bold text-green-primary mb-4 text-shadow-sm">Siga nosso Instagram!</h3>
+            <p className="text-gray-300 text-lg mb-6 leading-relaxed">
               Para novidades, fotos dos eventos e contato direto, siga nosso perfil:
             </p>
-            <div className="flex justify-center">
-              <a
-                href="https://instagram.com/greentableclub"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block bg-gradient-to-r from-green-500 to-green-700 text-white font-semibold px-8 py-4 rounded-full shadow-lg hover:scale-105 transition-transform text-xl"
-              >
+            <div className="bg-gradient-to-r from-green-primary/20 to-green-primary/10 p-4 rounded-xl mb-4 hover:from-green-primary/30 hover:to-green-primary/20 transition-all duration-300 cursor-pointer">
+              <p className="text-green-primary text-2xl font-bold tracking-wide">
                 @greentableclub
-              </a>
-            </div>
-            
-            <div className="mt-8 grid grid-cols-3 gap-4">
-              <div className="bg-poker-gray-dark rounded-md p-2 aspect-square"></div>
-              <div className="bg-poker-gray-dark rounded-md p-2 aspect-square"></div>
-              <div className="bg-poker-gray-dark rounded-md p-2 aspect-square"></div>
+              </p>
             </div>
           </div>
         </div>
