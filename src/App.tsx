@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import Footer from "./components/Footer";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import LeadsForm from "./components/LeadsForm"; // Import the LeadsForm component
 
 const queryClient = new QueryClient();
 
@@ -23,7 +24,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<><Index /><LeadsForm /></>} />
             <Route path="/menu" element={<Menu />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={
@@ -39,5 +40,6 @@ const App = () => (
     </TooltipProvider>
   </QueryClientProvider>
 );
+
 
 export default App;

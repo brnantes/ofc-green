@@ -8,6 +8,7 @@ import { BannersSection } from '@/components/admin/BannersSection';
 import { TournamentsSection } from '@/components/admin/TournamentsSection';
 import { ChampionsSection } from '@/components/admin/ChampionsSection';
 import { ImagesSection } from '@/components/admin/ImagesSection';
+import LeadsAdminSection from '@/components/admin/LeadsAdminSection';
 import UsersSection from '@/components/admin/UsersSection';
 import { useAuth } from '@/context/AuthContext';
 import { useSystemStats } from '@/hooks/useSystemStats';
@@ -41,6 +42,7 @@ const Admin = () => {
     { id: 'tournaments', label: 'Torneios', icon: Trophy },
     { id: 'users', label: 'Usuários', icon: Shield },
     { id: 'images', label: 'Galeria', icon: Image },
+    { id: 'leads', label: 'Leads', icon: Users },
     { id: 'footer', label: 'Rodapé', icon: MessageSquare },
   ];
 
@@ -70,6 +72,8 @@ const Admin = () => {
 
   const renderContent = () => {
     switch(activeSection) {
+      case 'leads':
+        return <LeadsAdminSection />;
       case 'footer':
         return (
           <Card className="max-w-xl mx-auto mt-8">
